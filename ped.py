@@ -27,7 +27,7 @@ def main():
         # open and read lines into linv; establish linc
         fp = open(filename, "r+")
         for line in fp:
-            linv.append(line.rstrip('\n');
+            linv.append(line.rstrip('\n'));
             linc = linc + 1
         dot = linc
         fp.close()
@@ -45,7 +45,7 @@ def main():
         cmd = p.sub("", cmd)
 
         # find the core command character
-        p = re.compile("[a-z]")
+        p = re.compile("[a-zA-Z]")
         c = p.findall(cmd)
         core = c[0]
 
@@ -60,28 +60,29 @@ def main():
 
         if core == 'i':
             dot = buf.a(dot-1)
+
         elif core == 'a':
             dot = buf.a(dot)
+
         elif core == 'd':
-            dot = buf.d(dot)
+            dot = buf.d(start, end)
+
         elif core == 'n':
-            if extra and c[1] == 'l':
-                dot = buf.type(dot-1, dot+1, True, True)
-            else: dot = buf.type(dot-1, dot+1, True, False)
+            if extra and c[1] == 'l': dot = buf.type(start, end, True, True)
+            else: dot = buf.type(start, end, True, False)
+
         elif core == 'p':
-            if extra and c[1] == 'l':
-                dot = buf.type(dot, dot+1, False, True)
-            else: dot = buf.type(dot, dot+1, False, False)
+            if extra and c[1] == 'l': dot = buf.type(start, end, False, True)
+            else: dot = buf.type(start, end, False, False)
+
         elif core == 'w' or core == 'W': # write file or append (W)
             mode = "w"
             if(core == 'W'): mode = "a" #append write
 
-            if not modified:
-                pass
             linv = buf.getlinv()
-            with open(filename, "w") as f:
+            with open(filename, mode) as f:
                 for l in linv:
-                    f.write(l)
+                    f.write(l+'\n')
        
         elif core == 'q':
             if modified: # print '?' if changes yet to save

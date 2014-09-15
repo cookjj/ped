@@ -6,11 +6,14 @@ class Edbuf:
         self.linc = linc
         self.linv = linv
 
-    def byte_count():
+    def byte_count(self):
         bc = 0
         for line in linv:
             bc = bc + len(line)
         return bc
+
+    def getlinv(self): #const
+        return self.linv
 
     def type(self, start, end, numbers=False, unamb=False):
         if start < 1 or end > self.linc or end < start:
@@ -20,10 +23,10 @@ class Edbuf:
             if numbers:
                 n = str(i+1) + "\t"
             else: n = ''
-            if unamb:
-                p = re.compile("\s$")
-                line = p.sub("$\n", self.linv[i])
-            print("{0}{1}".format(n, line), end='')
+            if unamb: # replace EOL with '$'
+                p = re.compile("$")
+                line = p.sub("$", self.linv[i])
+            print("{0}{1}".format(n, line))
         return end
         
     def a(self, dot): # const
@@ -38,9 +41,9 @@ class Edbuf:
         lastline = dot # TODO
         return lastline
 
-    def d(self, dot):
-        if dot < 1 or dot > self.linc:
-            return [dot, False]
+    def d(self, start, end):
+        if start < 1 or end > self.linc or end < start:
+            return [end, False] # main must reset dot
 
         self.linv.pop(dot-1)
         self.linc = self.linc - 1
