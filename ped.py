@@ -14,35 +14,30 @@ def main():
     argc = len(sys.argv)
     filename = sys.argv[argc-1]
     if(filename == sys.argv[0]):
-        print("no filename given -- quitting")#creating tmp empty buffer")
+        print("no filename given -- quitting")
         return -1
     if not os.path.exists(filename):
         print("file DNE -- quitting")
         return -1
 
-    # open and read lines into linv; establish linc
-    fp = open(filename, "r+")
+    fp = open(filename, "r+") # open and read lines into linv; establish linc
     for line in fp:
         linv.append(line.rstrip('\n'));
         linc = linc + 1
     fp.close()
     dot = linc
 
-    # our buffer object
-    buf = Edbuf(linc, linv)
+    buf = Edbuf(linc, linv) # our buffer object
     print(buf.byte_count())
 
-    # command loop
-    while True:
+    while True: # command loop
         cmd = input()
         if(len(cmd) == 0): print('?');continue
-        # remove all whitespace
-        p = re.compile("\s")
+        p = re.compile("\s") # remove all whitespace
         cmd = p.sub("", cmd)
         r = -1
 
-        # find the core command character
-        p = re.compile("[a-zA-Z]")
+        p = re.compile("[a-zA-Z]") # find the core command character
         c = p.findall(cmd)
         core = ''
         if c: core = c[0]
@@ -54,8 +49,7 @@ def main():
         start = dot
         end = dot
 
-        # find line range
-        p = re.compile("[0-9]+")
+        p = re.compile("[0-9]+") # find line range
         m = p.findall(cmd)
         if len(m) > 0:
             start = int(m[0])
@@ -64,8 +58,7 @@ def main():
             else:
                 end = start
 
-        # if no core command, select a line
-        if not core:
+        if not core: # if no core command, print dot
             r = buf.type(end, end, False, False)
         elif core == 'i':
             r = buf.a(start-1)
@@ -84,19 +77,20 @@ def main():
             elif core == 'n':
                 r = buf.type(start, end, True, unamb)
         
-        elif core == 'w': # or core == 'W': # write file or append (W)
-            mode = "w"
-            # if(core == 'W'): mode = "a" #append write
-
+        elif core == 'w':
+            if not buf.modified(): continue
             linv = buf.getlinv()
             with open(filename, mode) as f:
                 for l in linv:
                     f.write(l+'\n')
             print(buf.byte_count())
             r = len(linv)
-       
+
+        elif core == 'j':
+            r = buf.j(start)
+
         elif core == 'q':
-            if modified: # print '?' if changes yet to save
+            if buf.modified(): # print '?' if changes yet to save
                 print('?')
             else:
                 break
