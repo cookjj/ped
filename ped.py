@@ -1,4 +1,4 @@
-#! python3 ped.py <file>
+#! python3 ped.py <existing_file>
 import sys, os, os.path, re, tempfile
 from Edbuf import Edbuf
 
@@ -35,6 +35,7 @@ def main():
     # command loop
     while True:
         cmd = input()
+        if(len(cmd) == 0): print('?');continue
         # remove all whitespace
         p = re.compile("\s")
         cmd = p.sub("", cmd)
@@ -43,7 +44,8 @@ def main():
         # find the core command character
         p = re.compile("[a-zA-Z]")
         c = p.findall(cmd)
-        core = c[0]
+        core = ''
+        if c: core = c[0]
 
         extra = False
         if len(c) > 1:
@@ -62,7 +64,10 @@ def main():
             else:
                 end = start
 
-        if core == 'i':
+        # if no core command, select a line
+        if not core:
+            r = buf.type(end, end, False, False)
+        elif core == 'i':
             r = buf.a(start-1)
 
         elif core == 'a':

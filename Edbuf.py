@@ -12,6 +12,11 @@ class Edbuf:
             bc = bc + len(line) + 1 #+1 for \n byte
         return bc
 
+    def setdot(self, dot):
+        if dot < 1 or dot > self.linc:
+            return -1
+        return dot
+
     def getlinv(self): # const
         return self.linv
 
