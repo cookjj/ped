@@ -84,7 +84,7 @@ def main():
             elif core == 'n':
                 r = buf.type(start, end, True, unamb)
         
-        elif core == 'w':# or core == 'W': # write file or append (W)
+        elif core == 'w': # or core == 'W': # write file or append (W)
             mode = "w"
             # if(core == 'W'): mode = "a" #append write
 
@@ -92,6 +92,8 @@ def main():
             with open(filename, mode) as f:
                 for l in linv:
                     f.write(l+'\n')
+            print(buf.byte_count())
+            r = len(linv)
        
         elif core == 'q':
             if modified: # print '?' if changes yet to save
