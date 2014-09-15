@@ -14,70 +14,74 @@ def main():
     argc = len(sys.argv)
     filename = sys.argv[argc-1]
     if(filename == sys.argv[0]):
-        print("no filename given -- creating tmp empty buffer")
-    else:
-        # create given filename if not exists
-        if not os.path.exists(filename):
-            try:
-                open(filename, 'w').close();
-            except:
-                print("Couldn't create new file", filename)
-                return -1;
+        print("no filename given -- quitting")#creating tmp empty buffer")
+        return -1
+    if not os.path.exists(filename):
+        print("file DNE -- quitting")
+        return -1
 
-        # open and read lines into linv; establish linc
-        fp = open(filename, "r+")
-        for line in fp:
-            linv.append(line.rstrip('\n'));
-            linc = linc + 1
-        dot = linc
-        fp.close()
+    # open and read lines into linv; establish linc
+    fp = open(filename, "r+")
+    for line in fp:
+        linv.append(line.rstrip('\n'));
+        linc = linc + 1
+    fp.close()
+    dot = linc
 
     # our buffer object
     buf = Edbuf(linc, linv)
+    print(buf.byte_count())
 
     # command loop
     while True:
-        extra = False
-
         cmd = input()
         # remove all whitespace
         p = re.compile("\s")
         cmd = p.sub("", cmd)
+        r = -1
 
         # find the core command character
         p = re.compile("[a-zA-Z]")
         c = p.findall(cmd)
         core = c[0]
 
+        extra = False
         if len(c) > 1:
             extra = True
 
-        p = re.compile("\d+")
+        start = dot
+        end = dot
+
+        # find line range
+        p = re.compile("[0-9]+")
         m = p.findall(cmd)
-        print(m)
-        dot = 3
-        print("dot = ", dot)
+        if len(m) > 0:
+            start = int(m[0])
+            if len(m) > 1:
+                end = int(m[1])
+            else:
+                end = start
 
         if core == 'i':
-            dot = buf.a(dot-1)
+            r = buf.a(start-1)
 
         elif core == 'a':
-            dot = buf.a(dot)
+            r = buf.a(start)
 
         elif core == 'd':
-            dot = buf.d(start, end)
+            r = buf.d(start, end)
 
-        elif core == 'n':
-            if extra and c[1] == 'l': dot = buf.type(start, end, True, True)
-            else: dot = buf.type(start, end, True, False)
-
-        elif core == 'p':
-            if extra and c[1] == 'l': dot = buf.type(start, end, False, True)
-            else: dot = buf.type(start, end, False, False)
-
-        elif core == 'w' or core == 'W': # write file or append (W)
+        elif core == 'p' or core == 'n' or core == 'l':
+            unamb = False
+            if (extra and c[1] == 'l') or core == 'l': unamb = True
+            if core == 'p' or core == 'l':
+                r = buf.type(start, end, False, unamb)
+            elif core == 'n':
+                r = buf.type(start, end, True, unamb)
+        
+        elif core == 'w':# or core == 'W': # write file or append (W)
             mode = "w"
-            if(core == 'W'): mode = "a" #append write
+            # if(core == 'W'): mode = "a" #append write
 
             linv = buf.getlinv()
             with open(filename, mode) as f:
@@ -91,6 +95,10 @@ def main():
                 break
         else:
             print('?')
+
+        if r < 0: print('?')
+        else: dot = r
+    #end while
 
     fp.close();
 main();
