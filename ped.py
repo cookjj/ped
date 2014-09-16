@@ -4,12 +4,15 @@
 # please see the man pages to learn about the command syntax:
 #     http://man.cat-v.org/unix_8th/1/ed
 #
-# In `ped', the usual basic line and range selection by numbers is supported
+ # In `ped', the usual basic line and range selection by numbers is supported
 # and dot (current line) is remembered properly.
 # Support for '$', '%' and '.' implemented, but not other special indices.
 # The commands a, i, j, p, d, n, l, and w are supported.
 # An existing filename must be passed to ped.py to edit,
 # and only 'w' (overwrite) is supported, not 'W' (append).
+# For 'q' the quit command, unlike `ed' where q issued twice results
+# in unconditional exit, here we must use "qq" for now since command history
+# is not remembered.
 
 import sys, os, os.path, re
 from Edbuf import Edbuf
