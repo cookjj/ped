@@ -1,4 +1,4 @@
-import sys, re, string
+import sys, re, string, os
 
 def issourceline(line):
     """identifies if a line has only comment content or is whitespace"""
@@ -19,18 +19,16 @@ def issourceline(line):
 
 
 def main():
-    argc = len(sys.argv)
-    if(argc < 2):
-        print("usage: python3 count_lines.py file1 file2 ...")
-        return -1
-
     total = 0
-    for i in range(1, argc):
-        filename = sys.argv[i]
-        with open(filename, "r") as f:
-            for line in f:
-                if issourceline(line):
-                    total = total + 1
+    for file in os.listdir("."): 
+        if not ".py" in file: continue;
+        f = open(file, "r")
+        if file == sys.argv[0]:
+            continue
+        for line in f:
+            if issourceline(line):
+                total = total + 1
+        f.close()
     print("Total source lines:", total)
 
 main();
