@@ -1,11 +1,14 @@
 #! python3 ped.py <existing_file>
 # ped -- by Jeffrey Cook.
-# ped implements a subset of the standard UNIX editor, `ed'.
-# please see the man pages to learn the command syntax:
+# ped implements a subset of the _standard_ UNIX editor, `ed'.
+# please see the man pages to learn about the command syntax:
 #     http://man.cat-v.org/unix_8th/1/ed
 #
-# In `ped', the usual basic line and range selection is supported and
-# dot is remembered properly. The commands a, i, j, p, d, n, l, and w
+# In `ped', the usual basic line and range selection by numbers is supported
+# and dot (current line) is remembered properly. Support for special line
+# indices '%', '$', "--5", etc not supported. (index '.' works by virtue of
+# not detecting any range lines inputted.)
+# The commands a, i, j, p, d, n, l, and w
 # are supported. An existing filename must be passed to ped.py to edit,
 # and only 'w' (overwrite) is supported, not 'W' (append).
 
@@ -22,11 +25,8 @@ def main():
     # Validate args
     argc = len(sys.argv)
     filename = sys.argv[argc-1]
-    if(filename == sys.argv[0]):
-        print("no filename given -- quitting")
-        return -1
-    if not os.path.exists(filename):
-        print("file DNE -- quitting")
+    if(filename == sys.argv[0]) or not os.path.exists(filename):
+        print("no filename given or file DNE -- quitting")
         return -1
 
     with open(filename, "r+") as fp: # open and read lines into linv; establish linc
@@ -66,19 +66,17 @@ def main():
             else:
                 end = start
 
-        if not core: # if no core command, just print dot line
+        if not core: # if no core command, just print the dot line
             r = buf.type(end, end, False, False)
 
-        elif core == 'i':
-            r = buf.a(start-1)
-
-        elif core == 'a':
+        elif core == 'a' or core == 'i':
+            if core == 'i': start = start-1
             r = buf.a(start)
 
         elif core == 'd':
             r = buf.d(start, end)
 
-        elif core == 'p' or core == 'n' or core == 'l':
+        elif core == 'p' or core == 'n' or core == 'l': #printing commands
             unamb = False
             if (extra and c[1] == 'l') or core == 'l': unamb = True
             if core == 'p' or core == 'l':
@@ -96,10 +94,9 @@ def main():
         elif core == 'q':
             if buf.modified(): # print '?' if changes yet to save
                 print('? (unsaved buffer modified)')
-            else:
-                break
-        else:
-            print('?')
+            else: break
+
+        else: print('?')
 
         if r < 0: print('?') # print '?' on any error condition
         else: dot = r        # otherwise use returned dot from method call
