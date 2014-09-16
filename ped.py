@@ -67,7 +67,7 @@ def main():
 
         p = re.compile("%"); m = p.findall(cmd) # all lines wildcard '%'
         if len(m) > 0: start=1; end=len(buf.getlinv())
-        p = re.compile("$"); m = p.findall(cmd) # last line '$'
+        p = re.compile(r"\$"); m = p.findall(cmd) # last line '$'
         if len(m) > 0: end = len(buf.getlinv())
 
         if not core: # if no core command, just print the dot line
@@ -96,8 +96,11 @@ def main():
             r = buf.j(start)
 
         elif core == 'q':
-            if buf.modified(): # print '?' if changes yet to save
-                print('? (unsaved buffer modified)')
+            if not extra and buf.modified(): # print '?' if changes yet to save
+                print('? (unsaved buffer modified. Use qq to leave anyway)')
+                r = dot
+            elif extra and buf.modified():
+                if(c[1] == 'q'): break;
             else: break
 
         else: print('?')
