@@ -1,6 +1,5 @@
 one
 two
-new one
 three
 four
 five

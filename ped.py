@@ -1,5 +1,15 @@
 #! python3 ped.py <existing_file>
-import sys, os, os.path, re, tempfile
+# ped -- by Jeffrey Cook.
+# ped implements a subset of the standard UNIX editor, `ed'.
+# please see the man pages to learn the command syntax:
+#     http://man.cat-v.org/unix_8th/1/ed
+#
+# In `ped', the usual basic line and range selection is supported and
+# dot is remembered properly. The commands a, i, j, p, d, n, l, and w
+# are supported. An existing filename must be passed to ped.py to edit,
+# and only 'w' (overwrite) is supported, not 'W' (append).
+
+import sys, os, os.path, re
 from Edbuf import Edbuf
 
 def main():
@@ -7,7 +17,6 @@ def main():
     linc = 0    # line count
     linv = [ ]  # line vector (array)
     dot  = -1   # current working line aka '.' or "dot" in man pages
-    fp = None   # file pointer
     modified = False
 
     # Validate args
@@ -20,15 +29,14 @@ def main():
         print("file DNE -- quitting")
         return -1
 
-    fp = open(filename, "r+") # open and read lines into linv; establish linc
-    for line in fp:
-        linv.append(line.rstrip('\n'));
-        linc = linc + 1
-    fp.close()
+    with open(filename, "r+") as fp: # open and read lines into linv; establish linc
+        for line in fp:
+            linv.append(line.rstrip('\n'));
+            linc = linc + 1
     dot = linc
 
     buf = Edbuf(linc, linv) # our buffer object
-    print(buf.byte_count())
+    print(buf.byte_count()) # standard behaviour
 
     while True: # command loop
         cmd = input()
@@ -42,8 +50,8 @@ def main():
         core = ''
         if c: core = c[0]
 
-        extra = False
-        if len(c) > 1:
+        extra = False # some commands like 'n' can be followed by an
+        if len(c) > 1:# extra command char, such as 'l'
             extra = True
 
         start = dot
@@ -58,8 +66,9 @@ def main():
             else:
                 end = start
 
-        if not core: # if no core command, print dot
+        if not core: # if no core command, just print dot line
             r = buf.type(end, end, False, False)
+
         elif core == 'i':
             r = buf.a(start-1)
 
@@ -78,29 +87,22 @@ def main():
                 r = buf.type(start, end, True, unamb)
         
         elif core == 'w':
-            if not buf.modified(): continue
-            linv = buf.getlinv()
-            with open(filename, mode) as f:
-                for l in linv:
-                    f.write(l+'\n')
+            r = buf.w(filename, "w")
             print(buf.byte_count())
-            r = len(linv)
 
         elif core == 'j':
             r = buf.j(start)
 
         elif core == 'q':
             if buf.modified(): # print '?' if changes yet to save
-                print('?')
+                print('? (unsaved buffer modified)')
             else:
                 break
         else:
             print('?')
 
-        if r < 0: print('?')
-        else: dot = r
+        if r < 0: print('?') # print '?' on any error condition
+        else: dot = r        # otherwise use returned dot from method call
     #end while
-
-    fp.close();
 main();
 

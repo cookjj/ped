@@ -1,25 +1,35 @@
 import re
 
 class Edbuf:
-    """Edbuf methods return dot (line index) upon success"""
+    """Edbuf methods return new dot (line index) upon success, -1 on error.
+        function names of only 1 letter are named after `ed' commands."""
     def __init__(self, linc, linv):
         self.linc = linc
         self.linv = linv
         self.mod = False
 
-    def modified(self):
+    def modified(self): # is buffer modified? ; const
         return self.mod
 
-    def byte_count(self): # const
+    def w(self, filename, mode="w"):
+        if self.mod:
+            with open(filename, mode) as f:
+                for l in self.linv:
+                    f.write(l+'\n')
+            self.mod = False
+        return self.linc
+
+
+    def byte_count(self): # count bytes in file ; const
         bc = 0
         for line in self.linv:
             bc = bc + len(line) + 1 #+1 for \n byte
         return bc
 
-    def getlinv(self): # const
+    def getlinv(self): # gett for linv ; const
         return self.linv
 
-    def type(self, start, end, numbers=False, unamb=False): # const
+    def type(self, start, end, numbers=False, unamb=False): # type text ; const
         if start < 1 or end > self.linc or end < start:
             return -1
 
@@ -34,7 +44,7 @@ class Edbuf:
             print("{0}{1}".format(n, line))
         return end
         
-    def a(self, dot):
+    def a(self, dot): # append/insert text
         if dot < 0 or dot > self.linc+1:
             return -1
 
@@ -59,8 +69,7 @@ class Edbuf:
         if dot < 1 or dot > self.linc-1:
             return -1
 
-        line = self.linv[dot-1].rstrip() + self.linv[dot]
-        self.linv[dot-1] = line
+        self.linv[dot-1] = self.linv[dot-1].rstrip() + self.linv[dot]
         self.linv.pop(dot)
         self.mod = True
         return dot
