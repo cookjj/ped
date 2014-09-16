@@ -5,11 +5,10 @@
 #     http://man.cat-v.org/unix_8th/1/ed
 #
 # In `ped', the usual basic line and range selection by numbers is supported
-# and dot (current line) is remembered properly. Support for special line
-# indices '%', '$', "--5", etc not supported. (index '.' works by virtue of
-# not detecting any range lines inputted.)
-# The commands a, i, j, p, d, n, l, and w
-# are supported. An existing filename must be passed to ped.py to edit,
+# and dot (current line) is remembered properly.
+# Support for '$', '%' and '.' implemented, but not other special indices.
+# The commands a, i, j, p, d, n, l, and w are supported.
+# An existing filename must be passed to ped.py to edit,
 # and only 'w' (overwrite) is supported, not 'W' (append).
 
 import sys, os, os.path, re
@@ -29,7 +28,7 @@ def main():
         print("no filename given or file DNE -- quitting")
         return -1
 
-    with open(filename, "r+") as fp: # open and read lines into linv; establish linc
+    with open(filename, "r+") as fp: # read lines into linv; establish linc
         for line in fp:
             linv.append(line.rstrip('\n'));
             linc = linc + 1
@@ -66,6 +65,11 @@ def main():
             else:
                 end = start
 
+        p = re.compile("%"); m = p.findall(cmd) # all lines wildcard '%'
+        if len(m) > 0: start=1; end=len(buf.getlinv())
+        p = re.compile("$"); m = p.findall(cmd) # last line '$'
+        if len(m) > 0: end = len(buf.getlinv())
+
         if not core: # if no core command, just print the dot line
             r = buf.type(end, end, False, False)
 
@@ -83,7 +87,7 @@ def main():
                 r = buf.type(start, end, False, unamb)
             elif core == 'n':
                 r = buf.type(start, end, True, unamb)
-        
+
         elif core == 'w':
             r = buf.w(filename, "w")
             print(buf.byte_count())
