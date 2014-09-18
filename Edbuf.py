@@ -59,7 +59,8 @@ class Edbuf:
         if start < 1 or end > self.linc or end < start:
             return -1
 
-        for i in range(start-1, end):
+        for i in reversed(range(start-1, end)): 
+            print("pop line ", i)
             self.linv.pop(i)
             self.linc = self.linc - 1
         self.mod = True
